@@ -31,3 +31,30 @@ consumer() {
         Consume the item;
     }
 }
+
+
+/** 读写问题
+*/
+int count = 0; // reader count
+semaphore mutext = 1;
+semaphore rw = 1;
+
+writer () {
+    P(rw);
+    Writing...
+    V(rw);
+}
+
+reader() {
+    P(mutex);
+    if (count == 0) P(rw);
+    count++;
+    V(mutex);
+
+    reading...
+
+    P(mutex);
+    count--;
+    if (count == 0) V(rw);
+    V(mutex);
+}
