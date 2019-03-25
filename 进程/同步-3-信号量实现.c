@@ -8,7 +8,7 @@ signal(S) {
     S++;
 }
 
-/** 记录行信号量
+/** 记录型信号量
 */
 typedef struct {
     int value;

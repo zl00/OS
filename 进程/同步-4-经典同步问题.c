@@ -13,7 +13,7 @@ producer() {
     while (1) {
         Produce an item in nextp;
         P(empty);
-        P(mutext);
+        P(mutex);
         Add nextp to buffer;
         V(mutex);
         V(full);
@@ -34,12 +34,24 @@ consumer() {
 
 
 /** 读写问题
+分析： 典型的竞争关系
+1. writer与其他都互斥
+2. reader与writer互斥
+3. reader与reader并不互斥
+
+实现：
+1. writer枷锁（writer与其他都互斥）
+2. 第一个reader枷锁（reader与writer互斥）
+3. 其他reader直接访问（reader与reader并不互斥）
+
+缺点：
+可能会造成写进程饿死
 */
-int count = 0; // reader count
-semaphore mutext = 1;
+int reader_count = 0; // 不为0则处于读状态，读进程可以直接读取文件
+semaphore mutex = 1; 
 semaphore rw = 1;
 
-writer () {
+writer() {
     P(rw);
     Writing...
     V(rw);
@@ -47,14 +59,45 @@ writer () {
 
 reader() {
     P(mutex);
-    if (count == 0) P(rw);
-    count++;
+    if (reader_count == 0) P(rw);
+    reader_count++;
     V(mutex);
 
     reading...
 
     P(mutex);
-    count--;
-    if (count == 0) V(rw);
+    reader_count--;
+    if (reader_count == 0) V(rw);
+    V(mutex);
+}
+
+/** 读写公平法
+*/
+int reader_count = 0;
+semaphore mutex = 1;
+semaphore rw = 1;
+semaphore w = 1;
+
+writer() {
+    P(w);
+    P(rw);
+    Writing...
+    V(rw);
+    V(w);
+}
+
+reader() {
+    P(w);
+    P(mutex);
+    if (reader_count == 0) P(rw);
+    reader_count++;
+    V(mutex);
+    V(w);
+
+    Reading...
+
+    P(mutex);
+    reader_count--;
+    if (reader_count) V(rw);
     V(mutex);
 }
