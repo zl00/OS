@@ -76,7 +76,7 @@ reader() {
 int reader_count = 0;
 semaphore mutex = 1;
 semaphore rw = 1;
-semaphore w = 1;
+semaphore w = 1; // 限制了reader entry section的几率
 
 writer() {
     P(w);
